@@ -16,7 +16,7 @@ const playerStore = usePlayerStore()
 const { openDispatchDialog, showDispatchDialog, dispatch, loading: dispatchLoading } = useDispatch()
 
 const loading = ref(true)
-const selectedOrders = ref([])
+const selectedPlayerId = ref(null)
 const showFilterPanel = ref(false)
 
 // Filter form
@@ -385,7 +385,7 @@ onMounted(() => {
       <div class="dispatch-form">
         <p class="dispatch-tip">选择要派单的打手：</p>
         <el-select
-          v-model="selectedOrders[0]?.selectedPlayerId"
+          v-model="selectedPlayerId"
           placeholder="选择打手"
           style="width: 100%"
           filterable
@@ -400,7 +400,7 @@ onMounted(() => {
       </div>
       <template #footer>
         <el-button @click="showDispatchDialog = false">取消</el-button>
-        <el-button type="primary" :loading="dispatchLoading" @click="handleDispatchSelect(selectedOrders[0]?.selectedPlayerId)">
+        <el-button type="primary" :loading="dispatchLoading" @click="handleDispatchSelect(selectedPlayerId)">
           确认派单
         </el-button>
       </template>
