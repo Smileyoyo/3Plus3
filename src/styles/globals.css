@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-butterfly-purple: #B8A9D9;
+  --color-butterfly-cream: #F5E6D3;
+  --color-butterfly-coral: #FFB7B2;
+  --color-butterfly-lavender: #E8E0F0;
+  --color-butterfly-mint: #B5EAD7;
+
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+
+  --radius-card: 24px;
+  --radius-btn: 40px;
+}

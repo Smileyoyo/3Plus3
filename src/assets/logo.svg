@@ -1,0 +1,87 @@
+<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wingGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B8A9D9;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#E8E0F0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFB7B2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="wingGradient2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB7B2;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#E8E0F0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#B8A9D9;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6a5a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4a3a6a;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Left Wing -->
+  <path d="M30 28 Q15 15 8 22 Q2 30 12 38 Q20 45 30 35 Z" fill="url(#wingGradient1)" filter="url(#glow)" opacity="0.9">
+    <animate attributeName="d" 
+      values="M30 28 Q15 15 8 22 Q2 30 12 38 Q20 45 30 35 Z;
+              M30 28 Q12 12 5 20 Q0 28 10 37 Q18 44 30 35 Z;
+              M30 28 Q15 15 8 22 Q2 30 12 38 Q20 45 30 35 Z"
+      dur="2s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Left Wing Inner Pattern -->
+  <path d="M30 30 Q18 20 14 25 Q10 30 17 35 Q22 38 30 33 Z" fill="rgba(255,255,255,0.3)">
+    <animate attributeName="d" 
+      values="M30 30 Q18 20 14 25 Q10 30 17 35 Q22 38 30 33 Z;
+              M30 30 Q16 18 12 23 Q8 29 15 34 Q20 37 30 33 Z;
+              M30 30 Q18 20 14 25 Q10 30 17 35 Q22 38 30 33 Z"
+      dur="2s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Right Wing -->
+  <path d="M30 28 Q45 15 52 22 Q58 30 48 38 Q40 45 30 35 Z" fill="url(#wingGradient2)" filter="url(#glow)" opacity="0.9">
+    <animate attributeName="d" 
+      values="M30 28 Q45 15 52 22 Q58 30 48 38 Q40 45 30 35 Z;
+              M30 28 Q48 12 55 20 Q60 28 50 37 Q42 44 30 35 Z;
+              M30 28 Q45 15 52 22 Q58 30 48 38 Q40 45 30 35 Z"
+      dur="2s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Right Wing Inner Pattern -->
+  <path d="M30 30 Q42 20 46 25 Q50 30 43 35 Q38 38 30 33 Z" fill="rgba(255,255,255,0.3)">
+    <animate attributeName="d" 
+      values="M30 30 Q42 20 46 25 Q50 30 43 35 Q38 38 30 33 Z;
+              M30 30 Q44 18 48 23 Q52 29 45 34 Q40 37 30 33 Z;
+              M30 30 Q42 20 46 25 Q50 30 43 35 Q38 38 30 33 Z"
+      dur="2s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Body -->
+  <ellipse cx="30" cy="32" rx="3" ry="12" fill="url(#bodyGradient)"/>
+
+  <!-- Antennae -->
+  <path d="M28 20 Q25 12 22 8" stroke="#6a5a8a" stroke-width="1.5" fill="none" stroke-linecap="round">
+    <animate attributeName="d" 
+      values="M28 20 Q25 12 22 8;M28 20 Q24 11 20 7;M28 20 Q25 12 22 8"
+      dur="3s" repeatCount="indefinite"/>
+  </path>
+  <path d="M32 20 Q35 12 38 8" stroke="#6a5a8a" stroke-width="1.5" fill="none" stroke-linecap="round">
+    <animate attributeName="d" 
+      values="M32 20 Q35 12 38 8;M32 20 Q36 11 40 7;M32 20 Q35 12 38 8"
+      dur="3s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Antenna Tips -->
+  <circle cx="22" cy="8" r="1.5" fill="#B8A9D9">
+    <animate attributeName="cy" values="8;7;8" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="38" cy="8" r="1.5" fill="#FFB7B2">
+    <animate attributeName="cy" values="8;7;8" dur="3s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- 3Plus3 Text -->
+  <text x="30" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#B8A9D9">3Plus3</text>
+</svg>

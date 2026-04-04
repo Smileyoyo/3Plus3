@@ -1,0 +1,240 @@
+// Element Plus Overwrite Styles
+
+// Primary Colors
+$butterfly-primary: #B8A9D9;
+$butterfly-accent: #FFB7B2;
+$butterfly-mint: #B5EAD7;
+
+// Override Element Plus primary color
+:root {
+  --el-color-primary: #{$butterfly-primary};
+  --el-color-primary-light-3: #{lighten($butterfly-primary, 10%)};
+  --el-color-primary-light-5: #{lighten($butterfly-primary, 20%)};
+  --el-color-primary-light-7: #{lighten($butterfly-primary, 30%)};
+  --el-color-primary-light-8: #{lighten($butterfly-primary, 40%)};
+  --el-color-primary-light-9: #{lighten($butterfly-primary, 50%)};
+  --el-color-primary-dark-2: #{darken($butterfly-primary, 10%)};
+  --el-border-radius-base: 12px;
+  --el-border-radius-small: 8px;
+  --el-font-family: 'Inter', system-ui, sans-serif;
+}
+
+// Table Styles
+.el-table {
+  --el-table-bg-color: rgba(255, 255, 255, 0.6);
+  --el-table-tr-bg-color: rgba(255, 255, 255, 0.4);
+  --el-table-header-bg-color: rgba($butterfly-primary, 0.1);
+  --el-table-row-hover-bg-color: rgba($butterfly-lavender, 0.2);
+  --el-table-border-color: rgba($butterfly-primary, 0.15);
+  --el-table-text-color: #4a4a4a;
+  --el-table-header-text-color: #6a6a6a;
+
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  overflow: hidden;
+
+  th.el-table__cell {
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+// Button Styles
+.el-button {
+  --el-button-border-radius: 24px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &--primary {
+    --el-button-bg-color: #{$butterfly-primary};
+    --el-button-border-color: #{$butterfly-primary};
+    --el-button-hover-bg-color: #{lighten($butterfly-primary, 8%)};
+    --el-button-hover-border-color: #{lighten($butterfly-primary, 8%)};
+    --el-button-active-bg-color: #{darken($butterfly-primary, 5%)};
+    --el-button-active-border-color: #{darken($butterfly-primary, 5%)};
+  }
+
+  &--success {
+    --el-button-bg-color: #{$butterfly-mint};
+    --el-button-border-color: #{$butterfly-mint};
+    --el-button-hover-bg-color: #{lighten($butterfly-mint, 5%)};
+    --el-button-hover-border-color: #{lighten($butterfly-mint, 5%)};
+  }
+
+  &--warning {
+    --el-button-bg-color: #{$butterfly-accent};
+    --el-button-border-color: #{$butterfly-accent};
+    --el-button-hover-bg-color: #{lighten($butterfly-accent, 5%)};
+    --el-button-hover-border-color: #{lighten($butterfly-accent, 5%)};
+  }
+}
+
+// Input Styles
+.el-input {
+  --el-input-border-radius: 12px;
+
+  .el-input__wrapper {
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba($butterfly-primary, 0.2);
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 0 0 1px rgba($butterfly-primary, 0.4);
+    }
+
+    &.is-focus {
+      box-shadow: 0 0 0 2px rgba($butterfly-primary, 0.3);
+    }
+  }
+}
+
+// Select Styles
+.el-select {
+  .el-select__wrapper {
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.8);
+  }
+}
+
+// Dialog Styles
+.el-dialog {
+  --el-dialog-border-radius: 24px;
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.95);
+
+  .el-dialog__header {
+    padding: 20px 24px 12px;
+    border-bottom: 1px solid rgba($butterfly-primary, 0.1);
+  }
+
+  .el-dialog__title {
+    font-weight: 600;
+    color: $butterfly-primary;
+  }
+}
+
+// Card Styles
+.el-card {
+  --el-card-border-radius: 24px;
+  border: none;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba($butterfly-primary, 0.08);
+}
+
+// Menu Styles
+.el-menu {
+  --el-menu-bg-color: transparent;
+  --el-menu-text-color: #6a6a6a;
+  --el-menu-hover-bg-color: rgba($butterfly-primary, 0.1);
+  --el-menu-active-color: #{$butterfly-primary};
+  --el-menu-item-height: 48px;
+  border: none;
+
+  .el-menu-item {
+    border-radius: 12px;
+    margin: 4px 8px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba($butterfly-primary, 0.1);
+    }
+
+    &.is-active {
+      background: rgba($butterfly-primary, 0.15);
+      color: $butterfly-primary;
+      font-weight: 600;
+    }
+  }
+}
+
+// Tag Styles
+.el-tag {
+  --el-tag-border-radius: 20px;
+  border: none;
+  font-weight: 500;
+
+  &--success {
+    --el-tag-bg-color: rgba($butterfly-mint, 0.3);
+    --el-tag-text-color: #5a9a7a;
+  }
+
+  &--warning {
+    --el-tag-bg-color: rgba($butterfly-accent, 0.3);
+    --el-tag-text-color: #c97070;
+  }
+
+  &--info {
+    --el-tag-bg-color: rgba($butterfly-primary, 0.2);
+    --el-tag-text-color: $butterfly-primary;
+  }
+}
+
+// Pagination Styles
+.el-pagination {
+  --el-pagination-button-bg-color: rgba(255, 255, 255, 0.8);
+  --el-pagination-hover-color: #{$butterfly-primary};
+
+  .el-pager li {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+
+    &.is-active {
+      background: $butterfly-primary;
+      color: #fff;
+    }
+  }
+}
+
+// Message Styles
+.el-message {
+  --el-message-border-radius: 16px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba($butterfly-primary, 0.2);
+}
+
+// Form Styles
+.el-form-item__label {
+  font-weight: 500;
+  color: #6a6a6a;
+}
+
+// DatePicker Styles
+.el-date-editor {
+  .el-input__wrapper {
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.8);
+  }
+}
+
+// Dropdown Styles
+.el-dropdown-menu {
+  --el-dropdown-menuItem-hover-fill: rgba($butterfly-primary, 0.1);
+  --el-dropdown-menuItem-hover-color: #{$butterfly-primary};
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+// Badge Styles
+.el-badge__content {
+  border: none;
+  background: $butterfly-accent;
+}
+
+// Tooltip Styles
+.el-tooltip__popper {
+  --el-tooltip-color: #{$butterfly-primary};
+  backdrop-filter: blur(8px);
+}

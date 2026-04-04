@@ -1,0 +1,236 @@
+// Butterfly Theme Variables
+$primary: #B8A9D9;
+$accent: #FFB7B2;
+$secondary: #B5EAD7;
+$cream: #F5E6D3;
+$lavender: #E8E0F0;
+$coral: #FFB7B2;
+$purple: #B8A9D9;
+
+$bg-gradient: linear-gradient(135deg, #FDF8F5 0%, #F0EBF8 100%);
+$glass-bg: rgba(255, 255, 255, 0.65);
+$glass-border: rgba(255, 255, 255, 0.3);
+
+$radius-card: 24px;
+$radius-btn: 40px;
+$shadow-soft: 0 8px 32px rgba($primary, 0.12);
+$shadow-hover: 0 12px 40px rgba($primary, 0.2);
+
+// Butterfly Global Styles
+body {
+  background: $bg-gradient;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+// Glass Effect
+.glass {
+  background: $glass-bg;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $glass-border;
+  border-radius: $radius-card;
+  box-shadow: $shadow-soft;
+}
+
+// Butterfly Card
+.butterfly-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: $radius-card;
+  box-shadow: $shadow-soft;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    box-shadow: $shadow-hover;
+    transform: translateY(-2px);
+  }
+}
+
+// Butterfly Button
+.butterfly-btn {
+  background: linear-gradient(135deg, $primary 0%, $accent 100%);
+  border: none;
+  border-radius: $radius-btn;
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba($primary, 0.3);
+
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba($primary, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+// Butterfly Accent Button
+.butterfly-btn-accent {
+  background: linear-gradient(135deg, $accent 0%, $coral 100%);
+  border: none;
+  border-radius: $radius-btn;
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba($accent, 0.3);
+
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba($accent, 0.4);
+  }
+}
+
+// Butterfly Secondary Button
+.butterfly-btn-secondary {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba($primary, 0.3);
+  border-radius: $radius-btn;
+  color: $primary;
+  font-weight: 600;
+  padding: 12px 32px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: rgba($primary, 0.1);
+    border-color: $primary;
+    transform: translateY(-2px);
+  }
+}
+
+// Status Tags
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+
+  &.pending {
+    background: rgba($cream, 0.8);
+    color: #a67c52;
+  }
+
+  &.processing {
+    background: rgba($lavender, 0.8);
+    color: $purple;
+  }
+
+  &.completed {
+    background: rgba($secondary, 0.8);
+    color: #5a9a7a;
+  }
+
+  &.cancelled {
+    background: rgba($accent, 0.3);
+    color: #c97070;
+  }
+}
+
+// Page Transitions
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: scale(0.95) translateY(10px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: scale(1.02) translateY(-10px);
+}
+
+// Fade Transition
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// Custom Scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba($lavender, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba($primary, 0.4);
+  border-radius: 3px;
+
+  &:hover {
+    background: rgba($primary, 0.6);
+  }
+}
+
+// Butterfly Logo Animation
+@keyframes butterfly-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(3deg);
+  }
+}
+
+.butterfly-logo {
+  animation: butterfly-float 3s ease-in-out infinite;
+}
+
+// Pulse Animation for Notifications
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.pulse-ring {
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+// Toast Notification
+.butterfly-toast {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba($primary, 0.2);
+  border-radius: $radius-card;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 16px 24px;
+}
+
+// Gradient Text
+.gradient-text {
+  background: linear-gradient(135deg, $primary 0%, $accent 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
