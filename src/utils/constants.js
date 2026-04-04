@@ -59,19 +59,23 @@ export const VIP_LEVEL_TEXT = {
   [VIP_LEVEL.DIAMOND]: '钻石'
 }
 
-// Settlement Status
+// Settlement Status (与后端同步)
 export const SETTLEMENT_STATUS = {
-  PENDING: 'pending',
-  PROCESSING: 'processing',
-  COMPLETED: 'completed',
-  FAILED: 'failed'
+  PENDING: 'pending',    // 待结算
+  APPROVED: 'approved', // 已审核
+  PAID: 'paid'          // 已付款
 }
 
 export const SETTLEMENT_STATUS_TEXT = {
   [SETTLEMENT_STATUS.PENDING]: '待结算',
-  [SETTLEMENT_STATUS.PROCESSING]: '结算中',
-  [SETTLEMENT_STATUS.COMPLETED]: '已结算',
-  [SETTLEMENT_STATUS.FAILED]: '结算失败'
+  [SETTLEMENT_STATUS.APPROVED]: '已审核',
+  [SETTLEMENT_STATUS.PAID]: '已付款'
+}
+
+export const SETTLEMENT_STATUS_COLOR = {
+  [SETTLEMENT_STATUS.PENDING]: 'warning',
+  [SETTLEMENT_STATUS.APPROVED]: 'primary',
+  [SETTLEMENT_STATUS.PAID]: 'success'
 }
 
 // User Roles

@@ -25,14 +25,29 @@ instance.interceptors.request.use(
   }
 )
 
-// 响应拦截器
+// 响应拦截器 - 适配后端 { code, message, data } 格式
 instance.interceptors.response.use(
   (response) => {
-    return response.data
+    const res = response.data
+    
+    // 统一处理响应格式
+    if (res.code !== undefined) {
+      if (res.code === 200 || res.code === 0) {
+        return res.data
+      } else {
+        ElMessage.error(res.message || '请求失败')
+        return Promise.reject(new Error(res.message || '请求失败'))
+      }
+    }
+    
+    return res
   },
   (error) => {
     if (error.response) {
       const { status, data } = error.response
+      
+      // 尝试从后端错误格式中提取消息
+      const errorMessage = data?.message || data?.msg || '请求失败'
       
       switch (status) {
         case 401:
@@ -47,11 +62,17 @@ instance.interceptors.response.use(
         case 404:
           ElMessage.error('请求的资源不存在')
           break
+        case 409:
+          ElMessage.error('数据已被修改，请刷新后重试')
+          break
+        case 429:
+          ElMessage.error('操作过于频繁，请稍后再试')
+          break
         case 500:
           ElMessage.error('服务器错误，请稍后重试')
           break
         default:
-          ElMessage.error(data?.message || '请求失败')
+          ElMessage.error(errorMessage)
       }
     } else if (error.request) {
       ElMessage.error('网络连接失败，请检查网络')
