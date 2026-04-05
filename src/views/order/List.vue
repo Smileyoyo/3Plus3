@@ -18,9 +18,18 @@ const vipStore = useVIPStore()
 const { openDispatchDialog, showDispatchDialog, dispatch, loading: dispatchLoading } = useDispatch()
 
 const loading = ref(true)
-const selectedPlayerId = ref(null)
+const selectedPlayerIds = ref([])
 const showAddDialog = ref(false)
 const addLoading = ref(false)
+
+// Order type: 'temp' = 临时单, 'vip' = VIP单子
+const orderType = ref('temp')
+
+// VIP search keyword
+const vipSearchKeyword = ref('')
+
+// Player search keyword
+const playerSearchKeyword = ref('')
 
 // Add order form
 const addForm = reactive({
@@ -42,7 +51,40 @@ const filterForm = reactive({
   dateRange: []
 })
 
-// Game types for filter
+// Stats data (from dashboard)
+const stats = ref({
+  todayOrders: 0,
+  todayRevenue: 0,
+  pendingOrders: 0,
+  activePlayers: 0
+})
+
+// Filtered VIP list based on search
+const filteredVIPs = computed(() => {
+  if (!vipSearchKeyword.value) {
+    return vipStore.vips
+  }
+  const keyword = vipSearchKeyword.value.toLowerCase()
+  return vipStore.vips.filter(vip => 
+    (vip.nickname && vip.nickname.toLowerCase().includes(keyword)) ||
+    (vip.phone && vip.phone.includes(keyword))
+  )
+})
+
+// Filtered player list based on search
+const filteredPlayers = computed(() => {
+  const keyword = playerSearchKeyword.value.toLowerCase()
+  const baseList = playerStore.availablePlayers || []
+  if (!keyword) {
+    return baseList
+  }
+  return baseList.filter(player => 
+    (player.nickname && player.nickname.toLowerCase().includes(keyword)) ||
+    (player.phone && player.phone.includes(keyword))
+  )
+})
+
+// Game types for filter and add form
 const gameTypes = [
   { label: '暗区突围', value: '暗区突围' },
   { label: '三角洲行动', value: '三角洲行动' },
@@ -82,10 +124,22 @@ async function fetchOrders() {
     }
     
     await orderStore.fetchOrders(params)
+    await fetchStats()
   } catch (error) {
     ElMessage.error('获取订单列表失败')
   } finally {
     loading.value = false
+  }
+}
+
+// Fetch dashboard-style stats
+async function fetchStats() {
+  // 模拟统计数据，实际应从API获取
+  stats.value = {
+    todayOrders: 23,
+    todayRevenue: 12580,
+    pendingOrders: orderStore.orderCountByStatus[ORDER_STATUS.PENDING] || 0,
+    activePlayers: playerStore.availablePlayers?.length || 0
   }
 }
 
@@ -189,15 +243,28 @@ const statsSummary = computed(() => ({
   completed: orderStore.orderCountByStatus[ORDER_STATUS.COMPLETED] || 0
 }))
 
-// Dispatch dialog handlers
-function handleDispatchSelect(playerId) {
-  dispatch(playerId).then(() => {
+// Dispatch dialog handlers - now supports multiple players
+function handleDispatchSelect() {
+  if (!selectedPlayerIds.value || selectedPlayerIds.value.length === 0) {
+    ElMessage.warning('请选择至少一个打手')
+    return
+  }
+  
+  // For each selected player, create a dispatch
+  const promises = selectedPlayerIds.value.map(playerId => dispatch(playerId))
+  
+  Promise.all(promises).then(() => {
+    selectedPlayerIds.value = []
     fetchOrders()
+  }).catch(error => {
+    ElMessage.error('派单失败')
   })
 }
 
 // Open add dialog
 function openAddDialog() {
+  orderType.value = 'temp'
+  vipSearchKeyword.value = ''
   Object.assign(addForm, {
     vipId: '',
     vipName: '',
@@ -213,7 +280,12 @@ function openAddDialog() {
 
 // Submit add order
 async function submitAddOrder() {
-  if (!addForm.vipName || !addForm.gameType || !addForm.price) {
+  if (orderType.value === 'vip' && !addForm.vipId) {
+    ElMessage.warning('请选择VIP客户')
+    return
+  }
+  
+  if (!addForm.gameType || !addForm.price) {
     ElMessage.warning('请填写必填项')
     return
   }
@@ -221,9 +293,9 @@ async function submitAddOrder() {
   addLoading.value = true
   try {
     await orderStore.create({
-      vipId: addForm.vipId || null,
-      vipName: addForm.vipName,
-      vipPhone: addForm.vipPhone,
+      vipId: orderType.value === 'vip' ? addForm.vipId : null,
+      vipName: addForm.vipName || '临时客户',
+      vipPhone: addForm.vipPhone || '',
       gameType: addForm.gameType,
       currentTier: addForm.currentTier,
       targetTier: addForm.targetTier,
@@ -240,12 +312,31 @@ async function submitAddOrder() {
   }
 }
 
-// Select VIP from list
+// Select VIP from dropdown
 function handleSelectVIP(vip) {
   addForm.vipId = vip.id
   addForm.vipName = vip.nickname
   addForm.vipPhone = vip.phone
 }
+
+// Handle order type change
+function handleOrderTypeChange(type) {
+  orderType.value = type
+  if (type === 'temp') {
+    addForm.vipId = ''
+    addForm.vipName = ''
+    addForm.vipPhone = ''
+    vipSearchKeyword.value = ''
+  }
+}
+
+// Format selected players for display
+const selectedPlayersDisplay = computed(() => {
+  return selectedPlayerIds.value.map(id => {
+    const player = playerStore.availablePlayers?.find(p => p.id === id)
+    return player ? player.nickname : id
+  }).join(', ')
+})
 
 onMounted(() => {
   fetchOrders()
@@ -276,24 +367,47 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="stats-row">
-      <div class="stat-item" :class="{ active: !filterForm.status }" @click="filterForm.status = ''; handleFilter()">
-        <span class="stat-value">{{ statsSummary.total }}</span>
-        <span class="stat-label">全部订单</span>
-      </div>
-      <div class="stat-item pending" :class="{ active: filterForm.status === 'pending' }" @click="filterForm.status = 'pending'; handleFilter()">
-        <span class="stat-value">{{ statsSummary.pending }}</span>
-        <span class="stat-label">待派单</span>
-      </div>
-      <div class="stat-item processing" :class="{ active: filterForm.status === 'processing' }" @click="filterForm.status = 'processing'; handleFilter()">
-        <span class="stat-value">{{ statsSummary.processing }}</span>
-        <span class="stat-label">进行中</span>
-      </div>
-      <div class="stat-item completed" :class="{ active: filterForm.status === 'completed' }" @click="filterForm.status = 'completed'; handleFilter()">
-        <span class="stat-value">{{ statsSummary.completed }}</span>
-        <span class="stat-label">已完成</span>
-      </div>
+    <!-- Dashboard Stats Cards -->
+    <div class="dashboard-stats">
+      <ButterflyCard class="stat-card" hoverable>
+        <div class="stat-content stat-purple">
+          <div class="stat-icon">📋</div>
+          <div class="stat-info">
+            <p class="stat-value">{{ stats.todayOrders }}</p>
+            <p class="stat-title">今日订单</p>
+          </div>
+        </div>
+      </ButterflyCard>
+      
+      <ButterflyCard class="stat-card" hoverable>
+        <div class="stat-content stat-pink">
+          <div class="stat-icon">💰</div>
+          <div class="stat-info">
+            <p class="stat-value">¥{{ formatCurrency(stats.todayRevenue) }}</p>
+            <p class="stat-title">今日收入</p>
+          </div>
+        </div>
+      </ButterflyCard>
+      
+      <ButterflyCard class="stat-card" hoverable>
+        <div class="stat-content stat-orange">
+          <div class="stat-icon">⏰</div>
+          <div class="stat-info">
+            <p class="stat-value">{{ stats.pendingOrders }}</p>
+            <p class="stat-title">待处理订单</p>
+          </div>
+        </div>
+      </ButterflyCard>
+      
+      <ButterflyCard class="stat-card" hoverable>
+        <div class="stat-content stat-green">
+          <div class="stat-icon">🎮</div>
+          <div class="stat-info">
+            <p class="stat-value">{{ stats.activePlayers }}</p>
+            <p class="stat-title">在线打手</p>
+          </div>
+        </div>
+      </ButterflyCard>
     </div>
 
     <!-- Filter Bar -->
@@ -355,8 +469,8 @@ onMounted(() => {
         <el-table-column prop="vipName" label="VIP客户" width="120">
           <template #default="{ row }">
             <div class="vip-cell">
-              <span class="vip-level">{{ VIP_LEVEL_TEXT[row.vipLevel] || '' }}</span>
-              <span>{{ row.vipName }}</span>
+              <span v-if="row.vipLevel" class="vip-level">{{ VIP_LEVEL_TEXT[row.vipLevel] || '' }}</span>
+              <span>{{ row.vipName || '临时客户' }}</span>
             </div>
           </template>
         </el-table-column>
@@ -385,7 +499,7 @@ onMounted(() => {
           </template>
         </el-table-column>
         
-        <el-table-column prop="playerName" label="打手" width="100">
+        <el-table-column prop="playerName" label="打手" width="120">
           <template #default="{ row }">
             <span v-if="row.playerName">{{ row.playerName }}</span>
             <span v-else class="text-muted">-</span>
@@ -432,32 +546,52 @@ onMounted(() => {
       </div>
     </ButterflyCard>
 
-    <!-- Dispatch Dialog -->
+    <!-- Dispatch Dialog (Multi-player support) -->
     <el-dialog
       v-model="showDispatchDialog"
       title="派单"
-      width="500px"
+      width="600px"
     >
       <div class="dispatch-form">
-        <p class="dispatch-tip">选择要派单的打手：</p>
+        <p class="dispatch-tip">选择要派单的打手（可多选）：</p>
         <el-select
-          v-model="selectedPlayerId"
+          v-model="selectedPlayerIds"
           placeholder="选择打手"
           style="width: 100%"
+          multiple
           filterable
+          :filter-method="(val) => playerSearchKeyword = val"
+          @focus="playerSearchKeyword = ''"
         >
           <el-option
-            v-for="player in playerStore.availablePlayers"
+            v-for="player in filteredPlayers"
             :key="player.id"
-            :label="`${player.nickname} (完成${player.completedOrders}单, ⭐${player.rating})`"
+            :label="`${player.nickname} (完成${player.completedOrders || 0}单, ⭐${player.rating || 'N/A'})`"
             :value="player.id"
-          />
+          >
+            <div class="player-option">
+              <span>{{ player.nickname }}</span>
+              <span class="player-meta">完成 {{ player.completedOrders || 0 }} 单, ⭐ {{ player.rating || 'N/A' }}</span>
+            </div>
+          </el-option>
         </el-select>
+        
+        <div v-if="selectedPlayerIds.length > 0" class="selected-players">
+          <span class="selected-label">已选打手：</span>
+          <el-tag
+            v-for="playerId in selectedPlayerIds"
+            :key="playerId"
+            closable
+            @close="selectedPlayerIds = selectedPlayerIds.filter(id => id !== playerId)"
+          >
+            {{ playerStore.availablePlayers?.find(p => p.id === playerId)?.nickname || playerId }}
+          </el-tag>
+        </div>
       </div>
       <template #footer>
-        <el-button @click="showDispatchDialog = false">取消</el-button>
-        <el-button type="primary" :loading="dispatchLoading" @click="handleDispatchSelect(selectedPlayerId)">
-          确认派单
+        <el-button @click="showDispatchDialog = false; selectedPlayerIds = []">取消</el-button>
+        <el-button type="primary" :loading="dispatchLoading" @click="handleDispatchSelect">
+          确认派单 ({{ selectedPlayerIds.length }})
         </el-button>
       </template>
     </el-dialog>
@@ -469,22 +603,50 @@ onMounted(() => {
       width="600px"
     >
       <el-form :model="addForm" label-width="100px">
-        <el-form-item label="VIP客户" required>
-          <div class="vip-select-row">
-            <el-input v-model="addForm.vipName" placeholder="客户名称" style="width: 150px" />
-            <el-input v-model="addForm.vipPhone" placeholder="手机号" style="width: 150px" />
-          </div>
-          <div class="vip-quick-select" v-if="vipStore.vips.length">
-            <span class="label">快捷选择：</span>
-            <el-tag 
-              v-for="vip in vipStore.vips.slice(0, 5)" 
+        <!-- Order Type Radio -->
+        <el-form-item label="订单类型" required>
+          <el-radio-group v-model="orderType" @change="handleOrderTypeChange">
+            <el-radio value="temp">临时单</el-radio>
+            <el-radio value="vip">VIP单子</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        
+        <!-- VIP Customer Selection (Searchable Dropdown) -->
+        <el-form-item v-if="orderType === 'vip'" label="VIP客户" required>
+          <el-select
+            v-model="addForm.vipId"
+            placeholder="搜索并选择VIP客户"
+            style="width: 100%"
+            filterable
+            remote
+            :remote-method="(val) => vipSearchKeyword = val"
+            :loading="vipStore.loading"
+            @change="handleSelectVIP(filteredVIPs.find(v => v.id === addForm.vipId) || {})"
+          >
+            <el-option
+              v-for="vip in filteredVIPs"
               :key="vip.id"
-              class="vip-tag"
-              @click="handleSelectVIP(vip)"
+              :label="`${vip.nickname} (${VIP_LEVEL_TEXT[vip.vipLevel] || 'VIP'})`"
+              :value="vip.id"
             >
-              {{ vip.nickname }}
-            </el-tag>
+              <div class="vip-option">
+                <span class="vip-name">{{ vip.nickname }}</span>
+                <span class="vip-level-tag">{{ VIP_LEVEL_TEXT[vip.vipLevel] || 'VIP' }}</span>
+                <span class="vip-phone">{{ vip.phone || '' }}</span>
+              </div>
+            </el-option>
+          </el-select>
+          
+          <!-- Selected VIP info display -->
+          <div v-if="addForm.vipId" class="selected-vip-info">
+            <span>已选择：{{ addForm.vipName }}</span>
+            <span v-if="addForm.vipPhone" class="vip-phone-detail"> ({{ addForm.vipPhone }})</span>
           </div>
+        </el-form-item>
+        
+        <!-- Temp order customer info (optional) -->
+        <el-form-item v-if="orderType === 'temp'" label="客户名称">
+          <el-input v-model="addForm.vipName" placeholder="可填写客户名称（选填）" />
         </el-form-item>
         
         <el-form-item label="游戏类型" required>
@@ -558,49 +720,79 @@ onMounted(() => {
   gap: 12px;
 }
 
-// Stats Row
-.stats-row {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
+// Dashboard Stats Cards (from dashboard page)
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+  
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 }
 
-.stat-item {
-  flex: 1;
+.stat-card {
+  :deep(.butterfly-card) {
+    padding: 0;
+  }
+}
+
+.stat-content {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.6);
+  gap: 16px;
+  padding: 20px;
   border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-
-  &:hover {
-    transform: translateY(-2px);
+  
+  &.stat-purple {
+    background: linear-gradient(135deg, rgba(184, 169, 217, 0.3), rgba(184, 169, 217, 0.1));
   }
-
-  &.active {
-    border-color: #B8A9D9;
-    background: rgba(#B8A9D9, 0.1);
+  
+  &.stat-pink {
+    background: linear-gradient(135deg, rgba(255, 183, 178, 0.3), rgba(255, 183, 178, 0.1));
   }
-
-  .stat-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #4a4a4a;
+  
+  &.stat-orange {
+    background: linear-gradient(135deg, rgba(245, 230, 211, 0.4), rgba(245, 230, 211, 0.2));
   }
-
-  .stat-label {
-    font-size: 13px;
-    color: #888;
-    margin-top: 4px;
+  
+  &.stat-green {
+    background: linear-gradient(135deg, rgba(181, 234, 215, 0.3), rgba(181, 234, 215, 0.1));
   }
+}
 
-  &.pending .stat-value { color: #e6a23c; }
-  &.processing .stat-value { color: #409eff; }
-  &.completed .stat-value { color: #67c23a; }
+.stat-icon {
+  font-size: 36px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #4a4a4a;
+  line-height: 1.2;
+}
+
+.stat-title {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #888;
 }
 
 // Filter Bar
@@ -692,7 +884,69 @@ onMounted(() => {
   }
 }
 
+.player-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  
+  .player-meta {
+    font-size: 12px;
+    color: #888;
+  }
+}
+
+.selected-players {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  
+  .selected-label {
+    font-size: 13px;
+    color: #888;
+  }
+}
+
 // Add Order Dialog
+.vip-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  
+  .vip-name {
+    font-weight: 500;
+  }
+  
+  .vip-level-tag {
+    font-size: 11px;
+    padding: 2px 6px;
+    background: rgba(#B8A9D9, 0.2);
+    color: #8a7aa9;
+    border-radius: 8px;
+  }
+  
+  .vip-phone {
+    font-size: 12px;
+    color: #888;
+  }
+}
+
+.selected-vip-info {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(#B8A9D9, 0.1);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #6a6a6a;
+  
+  .vip-phone-detail {
+    color: #888;
+  }
+}
+
 .vip-select-row {
   display: flex;
   gap: 12px;
