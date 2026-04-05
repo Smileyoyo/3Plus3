@@ -23,7 +23,8 @@ export const useVIPStore = defineStore('vip', () => {
   const vipStats = computed(() => ({
     total: total.value,
     totalBalance: vips.value.reduce((sum, v) => sum + (v.balance || 0), 0),
-    totalRecharge: vips.value.reduce((sum, v) => sum + (v.totalRecharge || 0), 0),
+    totalRecharge: vips.value.reduce((sum, v) => sum + (v.totalRecharge || v.total_recharge || 0), 0),
+    totalSpent: vips.value.reduce((sum, v) => sum + (v.totalSpent || v.total_spent || 0), 0),
     levelCounts: {
       bronze: vips.value.filter(v => v.level === VIP_LEVEL.BRONZE).length,
       silver: vips.value.filter(v => v.level === VIP_LEVEL.SILVER).length,

@@ -730,4 +730,13 @@ onMounted(() => {
     font-weight: 600;
   }
 }
+
+:deep(.el-table) {
+  th.el-table__cell {
+    text-align: center;
+  }
+  td.el-table__cell {
+    text-align: center;
+  }
+}
 </style>

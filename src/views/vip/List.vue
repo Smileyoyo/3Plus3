@@ -247,6 +247,10 @@ onMounted(() => {
         <span class="stat-value">{{ formatCurrency(stats.totalRecharge) }}</span>
         <span class="stat-label">累计充值</span>
       </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ formatCurrency(stats.totalSpent) }}</span>
+        <span class="stat-label">累计消费</span>
+      </div>
       <div class="stat-item diamond" :class="{ active: filterForm.level === 5 }" @click="filterForm.level = 5; handleFilter()">
         <span class="stat-value">{{ stats.levelCounts?.diamond || 0 }}</span>
         <span class="stat-label">钻石会员</span>
@@ -294,7 +298,7 @@ onMounted(() => {
         stripe
         style="width: 100%"
       >
-        <el-table-column prop="nickname" label="VIP客户" width="180">
+        <el-table-column prop="nickname" label="VIP客户" width="180" align="center">
           <template #default="{ row }">
             <div class="vip-cell">
               <el-avatar :size="40" class="vip-avatar">{{ row.nickname?.charAt(0) }}</el-avatar>
@@ -306,7 +310,7 @@ onMounted(() => {
           </template>
         </el-table-column>
         
-        <el-table-column prop="level" label="等级" width="100">
+        <el-table-column prop="level" label="等级" width="100" align="center">
           <template #default="{ row }">
             <el-tag 
               class="level-tag"
@@ -317,31 +321,37 @@ onMounted(() => {
           </template>
         </el-table-column>
         
-        <el-table-column prop="balance" label="余额" width="120">
+        <el-table-column prop="balance" label="余额" width="120" align="center">
           <template #default="{ row }">
             <span class="balance">{{ formatCurrency(row.balance) }}</span>
           </template>
         </el-table-column>
         
-        <el-table-column prop="totalRecharge" label="累计充值" width="120">
+        <el-table-column prop="totalRecharge" label="累计充值" width="120" align="center">
           <template #default="{ row }">
             <span class="recharge">{{ formatCurrency(row.totalRecharge) }}</span>
           </template>
         </el-table-column>
         
-        <el-table-column prop="totalOrders" label="订单数" width="100">
+        <el-table-column prop="totalSpent" label="累计消费" width="120" align="center">
+          <template #default="{ row }">
+            <span class="spent">{{ formatCurrency(row.totalSpent || 0) }}</span>
+          </template>
+        </el-table-column>
+        
+        <el-table-column prop="totalOrders" label="订单数" width="100" align="center">
           <template #default="{ row }">
             <span class="order-count">{{ row.totalOrders || 0 }}</span>
           </template>
         </el-table-column>
         
-        <el-table-column prop="createdAt" label="注册时间" width="120">
+        <el-table-column prop="createdAt" label="注册时间" width="120" align="center">
           <template #default="{ row }">
             <span class="time">{{ formatDate(row.createdAt) }}</span>
           </template>
         </el-table-column>
         
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right" align="center">
           <template #default="{ row }">
             <div class="action-btns">
               <el-button size="small" text type="primary" @click="openEditDialog(row)">编辑</el-button>
@@ -495,9 +505,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+  justify-content: center;
   
   .vip-avatar { background: linear-gradient(135deg, #B8A9D9, #FFB7B2); }
-  .vip-info { display: flex; flex-direction: column; gap: 2px; }
+  .vip-info { display: flex; flex-direction: column; gap: 2px; text-align: left; }
   .vip-name { font-weight: 600; color: #4a4a4a; }
   .vip-phone { font-size: 12px; color: #888; }
 }
@@ -509,10 +520,11 @@ onMounted(() => {
 
 .balance { font-weight: 600; color: #67c23a; }
 .recharge { font-weight: 600; color: #B8A9D9; }
+.spent { font-weight: 600; color: #e6a23c; }
 .order-count { font-weight: 500; color: #4a4a4a; }
 .time { font-size: 13px; color: #888; }
 
-.action-btns { display: flex; gap: 4px; }
+.action-btns { display: flex; gap: 4px; justify-content: center; }
 
 .pagination-wrapper {
   display: flex;

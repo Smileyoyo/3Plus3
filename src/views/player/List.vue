@@ -446,4 +446,13 @@ onMounted(() => {
   padding: 20px;
   border-top: 1px solid rgba(#B8A9D9, 0.1);
 }
+
+:deep(.el-table) {
+  th.el-table__cell {
+    text-align: center;
+  }
+  td.el-table__cell {
+    text-align: center;
+  }
+}
 </style>
