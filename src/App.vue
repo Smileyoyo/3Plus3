@@ -16,7 +16,7 @@ onMounted(() => {
   <router-view />
 </template>
 
-<style>
+<style lang="scss">
 @import './styles/globals.css';
 @import './styles/butterfly.scss';
 @import './styles/element-overwrite.scss';
