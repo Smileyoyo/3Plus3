@@ -1,8 +1,9 @@
 <script setup>
-import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { usePlayerStore } from '@/stores/player'
+import { useVIPStore } from '@/stores/vip'
 import { useDispatch } from '@/composables/useDispatch'
 import ButterflyCard from '@/components/ButterflyCard.vue'
 import { formatCurrency, formatDateTime, formatRelativeTime } from '@/utils/format'
@@ -13,11 +14,25 @@ const route = useRoute()
 const router = useRouter()
 const orderStore = useOrderStore()
 const playerStore = usePlayerStore()
+const vipStore = useVIPStore()
 const { openDispatchDialog, showDispatchDialog, dispatch, loading: dispatchLoading } = useDispatch()
 
 const loading = ref(true)
 const selectedPlayerId = ref(null)
-const showFilterPanel = ref(false)
+const showAddDialog = ref(false)
+const addLoading = ref(false)
+
+// Add order form
+const addForm = reactive({
+  vipId: '',
+  vipName: '',
+  vipPhone: '',
+  gameType: '',
+  currentTier: '',
+  targetTier: '',
+  price: '',
+  remark: ''
+})
 
 // Filter form
 const filterForm = reactive({
@@ -29,6 +44,9 @@ const filterForm = reactive({
 
 // Game types for filter
 const gameTypes = [
+  { label: '暗区突围', value: '暗区突围' },
+  { label: '三角洲行动', value: '三角洲行动' },
+  { label: '瓦罗兰特', value: '瓦罗兰特' },
   { label: '王者荣耀', value: '王者荣耀' },
   { label: '英雄联盟', value: '英雄联盟' },
   { label: '和平精英', value: '和平精英' },
@@ -41,18 +59,11 @@ const statusOptions = Object.entries(ORDER_STATUS_TEXT).map(([value, label]) => 
   value
 }))
 
-// Table columns
-const columns = [
-  { prop: 'orderNo', label: '订单号', width: '150' },
-  { prop: 'vipName', label: 'VIP客户', width: '120' },
-  { prop: 'gameType', label: '游戏', width: '100' },
-  { prop: 'tier', label: '段位', width: '140' },
-  { prop: 'price', label: '价格', width: '100' },
-  { prop: 'status', label: '状态', width: '100' },
-  { prop: 'playerName', label: '打手', width: '100' },
-  { prop: 'createdAt', label: '创建时间', width: '150' },
-  { prop: 'actions', label: '操作', width: '180', fixed: 'right' }
-]
+// VIP level options
+const vipLevelOptions = Object.entries(VIP_LEVEL_TEXT).map(([value, label]) => ({
+  label,
+  value: Number(value)
+}))
 
 // Fetch orders
 async function fetchOrders() {
@@ -82,7 +93,6 @@ async function fetchOrders() {
 function handleFilter() {
   orderStore.setFilters(filterForm)
   fetchOrders()
-  showFilterPanel.value = false
 }
 
 // Reset filter
@@ -95,11 +105,6 @@ function resetFilter() {
   })
   orderStore.resetFilters()
   fetchOrders()
-}
-
-// Handle selection change
-function handleSelectionChange(selection) {
-  selectedOrders.value = selection
 }
 
 // Handle pagination change
@@ -191,11 +196,62 @@ function handleDispatchSelect(playerId) {
   })
 }
 
+// Open add dialog
+function openAddDialog() {
+  Object.assign(addForm, {
+    vipId: '',
+    vipName: '',
+    vipPhone: '',
+    gameType: '',
+    currentTier: '',
+    targetTier: '',
+    price: '',
+    remark: ''
+  })
+  showAddDialog.value = true
+}
+
+// Submit add order
+async function submitAddOrder() {
+  if (!addForm.vipName || !addForm.gameType || !addForm.price) {
+    ElMessage.warning('请填写必填项')
+    return
+  }
+  
+  addLoading.value = true
+  try {
+    await orderStore.create({
+      vipId: addForm.vipId || null,
+      vipName: addForm.vipName,
+      vipPhone: addForm.vipPhone,
+      gameType: addForm.gameType,
+      currentTier: addForm.currentTier,
+      targetTier: addForm.targetTier,
+      price: Number(addForm.price),
+      remark: addForm.remark
+    })
+    ElMessage.success('订单创建成功')
+    showAddDialog.value = false
+    fetchOrders()
+  } catch (error) {
+    ElMessage.error('创建失败')
+  } finally {
+    addLoading.value = false
+  }
+}
+
+// Select VIP from list
+function handleSelectVIP(vip) {
+  addForm.vipId = vip.id
+  addForm.vipName = vip.nickname
+  addForm.vipPhone = vip.phone
+}
+
 onMounted(() => {
   fetchOrders()
   playerStore.fetchPlayers({ status: 'online' })
+  vipStore.fetchVIPs({ pageSize: 100 })
   
-  // Check if there's an order ID in query
   if (route.query.id) {
     // Could open order detail modal here
   }
@@ -211,7 +267,10 @@ onMounted(() => {
         <p class="page-subtitle">管理所有游戏陪练订单</p>
       </div>
       <div class="header-actions">
-        <el-button type="primary" @click="fetchOrders">
+        <el-button type="primary" @click="openAddDialog">
+          + 新建订单
+        </el-button>
+        <el-button @click="fetchOrders">
           🔄 刷新
         </el-button>
       </div>
@@ -286,10 +345,7 @@ onMounted(() => {
         :data="orderStore.orders"
         stripe
         style="width: 100%"
-        @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="50" />
-        
         <el-table-column prop="orderNo" label="订单号" width="150">
           <template #default="{ row }">
             <span class="order-no" @click="viewOrderDetail(row)">{{ row.orderNo }}</span>
@@ -405,6 +461,69 @@ onMounted(() => {
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- Add Order Dialog -->
+    <el-dialog
+      v-model="showAddDialog"
+      title="新建订单"
+      width="600px"
+    >
+      <el-form :model="addForm" label-width="100px">
+        <el-form-item label="VIP客户" required>
+          <div class="vip-select-row">
+            <el-input v-model="addForm.vipName" placeholder="客户名称" style="width: 150px" />
+            <el-input v-model="addForm.vipPhone" placeholder="手机号" style="width: 150px" />
+          </div>
+          <div class="vip-quick-select" v-if="vipStore.vips.length">
+            <span class="label">快捷选择：</span>
+            <el-tag 
+              v-for="vip in vipStore.vips.slice(0, 5)" 
+              :key="vip.id"
+              class="vip-tag"
+              @click="handleSelectVIP(vip)"
+            >
+              {{ vip.nickname }}
+            </el-tag>
+          </div>
+        </el-form-item>
+        
+        <el-form-item label="游戏类型" required>
+          <el-select v-model="addForm.gameType" placeholder="选择游戏" style="width: 100%">
+            <el-option
+              v-for="game in gameTypes"
+              :key="game.value"
+              :label="game.label"
+              :value="game.value"
+            />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="段位信息">
+          <div class="tier-row">
+            <el-input v-model="addForm.currentTier" placeholder="当前段位" />
+            <span class="arrow">→</span>
+            <el-input v-model="addForm.targetTier" placeholder="目标段位" />
+          </div>
+        </el-form-item>
+        
+        <el-form-item label="价格" required>
+          <el-input v-model="addForm.price" type="number" placeholder="订单金额">
+            <template #prepend>¥</template>
+          </el-input>
+        </el-form-item>
+        
+        <el-form-item label="备注">
+          <el-input v-model="addForm.remark" type="textarea" :rows="3" placeholder="订单备注信息" />
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <el-button @click="showAddDialog = false">取消</el-button>
+        <el-button type="primary" :loading="addLoading" @click="submitAddOrder">
+          创建订单
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -432,6 +551,11 @@ onMounted(() => {
   margin: 0;
   font-size: 14px;
   color: #888;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
 }
 
 // Stats Row
@@ -565,6 +689,45 @@ onMounted(() => {
   .dispatch-tip {
     margin: 0 0 12px;
     color: #6a6a6a;
+  }
+}
+
+// Add Order Dialog
+.vip-select-row {
+  display: flex;
+  gap: 12px;
+}
+
+.vip-quick-select {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  
+  .label {
+    font-size: 13px;
+    color: #888;
+  }
+  
+  .vip-tag {
+    cursor: pointer;
+    
+    &:hover {
+      background: #B8A9D9;
+      color: #fff;
+    }
+  }
+}
+
+.tier-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+  .arrow {
+    color: #B8A9D9;
+    font-weight: 600;
   }
 }
 </style>
